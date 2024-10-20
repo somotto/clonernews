@@ -105,7 +105,6 @@ async function loadComments(postId) {
         console.error('Error loading comments:', error);
     }
 }
-
 async function displayCommentAndReplies(commentId, container, depth) {
     try {
         const comment = await fetchItem(commentId);
