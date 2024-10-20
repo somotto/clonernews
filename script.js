@@ -1,4 +1,3 @@
-
 async function displayPost(postId) {
     try {
         const post = await fetchItem(postId);
