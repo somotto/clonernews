@@ -1,35 +1,27 @@
 
-async function displayPost(postId) {
+async function checkLiveUpdates() {
     try {
-        const post = await fetchItem(postId);
-        const postElement = document.createElement('div');
-        postElement.className = 'post';
-        const postLink = post.url || `#/item/${post.id}`;
-        let postContent = '';
+        const response = await fetch(`${apiBase}/updates.json`);
+        if (!response.ok) throw new Error('Failed to fetch updates');
+        const data = await response.json();
+        const liveUpdateContent = document.getElementById('liveUpdateContent');
+        liveUpdateContent.innerHTML = '<div class="loading">Checking for updates...</div>';
 
-        switch (post.type) {
-            case 'job':
-                postContent = `<span class="post-type">Job</span>`;
-                break;
-            case 'poll':
-                postContent = `<span class="post-type">Poll</span>`;
-                break;
-            default:
-                postContent = `<span class="post-type">Story</span>`;
+        let updatesHtml = '';
+        for (let i = 0; i < Math.min(5, data.items.length); i++) {
+            const itemId = data.items[i];
+            const item = await fetchItem(itemId);
+            updatesHtml += `
+                <div class="live-update-item">
+                    <h4>${item.title || 'Comment update'}</h4>
+                    <p>${item.type === 'comment' ? item.text : item.url}</p>
+                    <p class="post-info">By: ${item.by}</p>
+                </div>
+            `;
         }
-
-        postElement.innerHTML = `
-            <a href="${postLink}" target="_blank">
-                <h3>${post.title}</h3>
-            </a>
-            ${postContent}
-            <p class="post-info">By: ${post.by} | Score: ${post.score}</p>
-            ${post.url ? `<a href="${post.url}" target="_blank">Read more</a>` : ''}
-            <button onclick="loadComments(${post.id})">Load Comments</button>
-            <div id="comments-${post.id}"></div>`;
-        document.getElementById('posts').appendChild(postElement);
+        liveUpdateContent.innerHTML = updatesHtml || '<p>No new updates.</p>';
     } catch (error) {
-        console.error('Error displaying post:', error);
-        // Optionally, show an error message for this specific post
+        showError('liveUpdateContent', 'Failed to check for updates. Please try again later.');
+        console.error('Error checking live updates:', error);
     }
 }
