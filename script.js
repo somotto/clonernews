@@ -4,7 +4,7 @@ const postsPerPage = 10;
 const postTypes = ['topstories', 'newstories', 'jobstories', 'askstories', 'showstories'];
 let currentType = 'topstories';
 
-function throttle(func, limit) {
+export function throttle(func, limit) {
     let inThrottle;
     return function () {
         const args = arguments;
@@ -17,15 +17,20 @@ function throttle(func, limit) {
     }
 }
 
-function showLoading(elementId) {
+export function showLoading(elementId) {
     const element = document.getElementById(elementId);
     element.innerHTML = '<div class="loading">Loading...</div>';
 }
 
-function showError(elementId, message) {
+export function showError(elementId, message) {
     const element = document.getElementById(elementId);
-    element.innerHTML = `<div class="error">${message}</div>`;
+    if (element) {
+        element.innerHTML = `<div class="error">${message}</div>`;
+    } else {
+        console.error(`Element with id '${elementId}' not found.`);
+    }
 }
+
 
 async function fetchPosts(type = currentType) {
     try {
@@ -157,7 +162,7 @@ async function checkLiveUpdates() {
     }
 }
 
-function createNavigation() {
+export function createNavigation() {
     const nav = document.createElement('nav');
     postTypes.forEach(type => {
         const button = document.createElement('button');
@@ -170,15 +175,26 @@ function createNavigation() {
         };
         nav.appendChild(button);
     });
-    document.querySelector('header').appendChild(nav);
+    const header = document.querySelector('header');
+    if (header) {
+        header.appendChild(nav);
+    } else {
+        document.body.insertBefore(nav, document.body.firstChild);
+    }
 }
+
 
 // Initial load
 createNavigation();
 fetchPosts();
 
 // Load more posts
-document.getElementById('loadMore').addEventListener('click', () => fetchPosts(currentType));
+const loadMoreButton = document.getElementById('loadMore');
+if (loadMoreButton) {
+    loadMoreButton.addEventListener('click', () => fetchPosts(currentType));
+} else {
+    console.error("Element with id 'loadMore' not found.");
+}
 
 // Check for live updates every 5 seconds
 setInterval(checkLiveUpdates, 5000);
