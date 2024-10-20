@@ -89,6 +89,7 @@ async function checkLiveUpdates() {
 }
 
 async function loadComments(postId) {
+async function displayPost(postId) {
     try {
         const post = await fetchItem(postId);
         const commentsContainer = document.getElementById(`comments-${postId}`);
