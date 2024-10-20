@@ -1,25 +1,35 @@
 
-async function fetchPosts(type = currentType) {
+async function displayPost(postId) {
     try {
-        showLoading('posts');
-        const response = await fetch(`${apiBase}/${type}.json`);
-        if (!response.ok) throw new Error('Failed to fetch posts');
-        const storyIds = await response.json();
-        document.getElementById('posts').innerHTML = '';
-        for (let i = currentIndex; i < currentIndex + postsPerPage; i++) {
-            if (i >= storyIds.length) break;
-            const postId = storyIds[i];
-            await displayPost(postId);
-        }
-        currentIndex += postsPerPage;
-    } catch (error) {
-        showError('posts', 'Failed to load posts. Please try again later.');
-        console.error('Error fetching posts:', error);
-    }
-}
+        const post = await fetchItem(postId);
+        const postElement = document.createElement('div');
+        postElement.className = 'post';
+        const postLink = post.url || `#/item/${post.id}`;
+        let postContent = '';
 
-async function fetchItem(id) {
-    const response = await fetch(`${apiBase}/item/${id}.json`);
-    if (!response.ok) throw new Error('Failed to fetch item');
-    return await response.json();
+        switch (post.type) {
+            case 'job':
+                postContent = `<span class="post-type">Job</span>`;
+                break;
+            case 'poll':
+                postContent = `<span class="post-type">Poll</span>`;
+                break;
+            default:
+                postContent = `<span class="post-type">Story</span>`;
+        }
+
+        postElement.innerHTML = `
+            <a href="${postLink}" target="_blank">
+                <h3>${post.title}</h3>
+            </a>
+            ${postContent}
+            <p class="post-info">By: ${post.by} | Score: ${post.score}</p>
+            ${post.url ? `<a href="${post.url}" target="_blank">Read more</a>` : ''}
+            <button onclick="loadComments(${post.id})">Load Comments</button>
+            <div id="comments-${post.id}"></div>`;
+        document.getElementById('posts').appendChild(postElement);
+    } catch (error) {
+        console.error('Error displaying post:', error);
+        // Optionally, show an error message for this specific post
+    }
 }
